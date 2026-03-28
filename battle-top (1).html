@@ -260,7 +260,7 @@ const FIREBASE_READY = firebaseConfig &&
 
 if (FIREBASE_READY) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-  const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  const { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
   const { getFirestore, doc, onSnapshot, setDoc }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
@@ -272,14 +272,9 @@ if (FIREBASE_READY) {
   let unsubscribe = null;
 
   window.signInGoogle = async () => {
-    document.getElementById('loginErr').style.display='none';
-    document.getElementById('loginStatus').textContent='登入中...';
-    try { await signInWithPopup(auth, provider); }
-    catch(e) {
-      document.getElementById('loginStatus').textContent='';
-      document.getElementById('loginErr').style.display='block';
-      document.getElementById('loginErr').textContent='登入失敗：'+e.message;
-    }
+    document.getElementById('loginStatus').textContent='跳轉登入中...';
+    document.getElementById('loginBtn').style.display='none';
+    await signInWithRedirect(auth, provider);
   };
   window.doSignOut = async () => {
     if(unsubscribe) unsubscribe();

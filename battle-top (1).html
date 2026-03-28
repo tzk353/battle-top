@@ -141,7 +141,6 @@ label.lbl{font-size:13px;color:#a78bfa;display:block;margin-bottom:6px;}
   <button class="tab-btn" onclick="switchTab('sell',this)">🛒 銷售</button>
   <button class="tab-btn" onclick="switchTab('shipping',this)">🚚 出貨<span class="badge" id="pendingBadge" style="display:none"></span></button>
   <button class="tab-btn" onclick="switchTab('report',this)">📈 報表</button>
-  <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ 設定</button>
 </div>
 
 <main>
@@ -150,7 +149,6 @@ label.lbl{font-size:13px;color:#a78bfa;display:block;margin-bottom:6px;}
   <div id="tab-sell" style="display:none"></div>
   <div id="tab-shipping" style="display:none"></div>
   <div id="tab-report" style="display:none"></div>
-  <div id="tab-settings" style="display:none"></div>
 </main>
 
 </div><!-- /appShell -->
@@ -262,7 +260,7 @@ const FIREBASE_READY = firebaseConfig &&
 
 if (FIREBASE_READY) {
   const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-  const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
+  const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
   const { getFirestore, doc, onSnapshot, setDoc }
     = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
@@ -271,6 +269,9 @@ if (FIREBASE_READY) {
   const auth = getAuth(app);
   const db = getFirestore(app);
   let unsubscribe = null;
+
+  // 記住登入狀態，關掉再開不用重新登入
+  await setPersistence(auth, browserLocalPersistence);
 
   function showLoginErr(msg) {
     const el = document.getElementById('loginErr');

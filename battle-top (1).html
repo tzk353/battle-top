@@ -472,15 +472,40 @@ function renderShipping(){
     const q=shipSearch.trim().toLowerCase();
     list=list.filter(s=>(s.buyer||'').toLowerCase().includes(q)||(s.note||'').toLowerCase().includes(q)||s.items.some(i=>i.name.toLowerCase().includes(q)));
   }
-  document.getElementById('tab-shipping').innerHTML=`
-  <input type="search" class="search-bar" placeholder="🔍 搜尋買家、商品、備註..." value="${shipSearch}" oninput="shipSearch=this.value;renderShipping()">
+  const el=document.getElementById('tab-shipping');
+  // 只更新篩選結果，不重建搜尋欄
+  const existingSearch=el.querySelector('.search-bar');
+  if(!existingSearch){
+    el.innerHTML=`<input type="search" class="search-bar" placeholder="🔍 搜尋買家、商品、備註..." id="shipSearchInput">
+    <div id="shipFilterRow"></div><div id="shipList"></div>`;
+    document.getElementById('shipSearchInput').addEventListener('input',function(){
+      shipSearch=this.value;
+      updateShippingList();
+    });
+  }
+  updateShippingList();
+}
+function updateShippingList(){
+  const pend=S().filter(s=>!s.shipped),done=S().filter(s=>s.shipped);
+  let list=shipFilter==='pending'?pend:shipFilter==='shipped'?done:S();
+  if(shipSearch.trim()){
+    const q=shipSearch.trim().toLowerCase();
+    list=list.filter(s=>(s.buyer||'').toLowerCase().includes(q)||(s.note||'').toLowerCase().includes(q)||s.items.some(i=>i.name.toLowerCase().includes(q)));
+  }
+  const filterRow=document.getElementById('shipFilterRow');
+  if(filterRow) filterRow.innerHTML=`
   <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto">
     <button class="pill ${shipFilter==='all'?'a-all':''}" onclick="setShipFilter('all')">全部 ${S().length}</button>
     <button class="pill ${shipFilter==='pending'?'a-p':''}" onclick="setShipFilter('pending')">待出貨 ${pend.length}</button>
     <button class="pill ${shipFilter==='shipped'?'a-d':''}" onclick="setShipFilter('shipped')">已出貨 ${done.length}</button>
-  </div>
-  ${list.length===0?`<div class="empty"><div style="font-size:36px">${shipSearch?'🔍':'📭'}</div><div style="margin-top:10px">${shipSearch?'找不到符合的紀錄':'沒有紀錄'}</div></div>`:''}
-  ${list.map(s=>`
+  </div>`;
+  const shipList=document.getElementById('shipList');
+  if(!shipList)return;
+  if(list.length===0){
+    shipList.innerHTML=`<div class="empty"><div style="font-size:36px">${shipSearch?'🔍':'📭'}</div><div style="margin-top:10px">${shipSearch?'找不到符合的紀錄':'沒有紀錄'}</div></div>`;
+    return;
+  }
+  shipList.innerHTML=list.map(s=>`
   <div class="sale-card" style="border-left:3px solid ${s.shipped?'#10b981':'#f59e0b'}">
     <div style="margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
@@ -496,7 +521,7 @@ function renderShipping(){
       <strong style="color:#10b981;font-size:14px">NT$${s.total.toLocaleString()}</strong>
       <button class="${s.shipped?'btn-ship-d':'btn-ship-p'}" onclick="toggleShipped(${s.id})">${s.shipped?'📦 已出貨 → 取消':'🚚 標記出貨'}</button>
     </div>
-  </div>`).join('')}`;
+  </div>`).join('');
 }
 
 // ===== BUYERS =====

@@ -567,9 +567,13 @@ function renderBuyers(){
 function onBuyerInput(){
   const val=document.getElementById('sellBuyer').value.toLowerCase();
   const list=document.getElementById('buyerList');
-  const matches=B().filter(b=>b.name.toLowerCase().includes(val)&&b.name!=='');
-  if(matches.length===0||val===''){list.classList.remove('open');return;}
-  list.innerHTML=matches.map(b=>`<div class="buyer-item" onclick="selectBuyer('${b.name.replace(/'/g,"\\'")}')">👤 ${b.name}${b.phone?' · '+b.phone:''}</div>`).join('');
+  // 從買家資料庫 + 歷史銷售紀錄抓買家名稱
+  const fromDB=B().map(b=>b.name);
+  const fromSales=S().map(s=>s.buyer).filter(b=>b&&b.trim());
+  const allNames=[...new Set([...fromDB,...fromSales])].filter(n=>n&&n.trim());
+  const matches=allNames.filter(n=>n.toLowerCase().includes(val)&&val!=='');
+  if(matches.length===0){list.classList.remove('open');return;}
+  list.innerHTML=matches.map(n=>`<div class="buyer-item" onclick="selectBuyer('${n.replace(/'/g,"\\'")}')">👤 ${n}</div>`).join('');
   list.classList.add('open');
 }
 function selectBuyer(name){

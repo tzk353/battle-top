@@ -175,7 +175,22 @@ label.lbl{font-size:13px;color:#a78bfa;display:block;margin-bottom:6px;}
   </div>
 </div>
 
-<!-- Product Modal -->
+<!-- Set Stock Modal -->
+<div class="overlay" id="setStockModal">
+  <div class="sheet">
+    <div class="sheet-title" id="setStockTitle">✏️ 調整庫存</div>
+    <div style="background:#2d1a00;border:1px solid #92400e;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#fbbf24">
+      ⚠️ 直接設定庫存數量，不影響銷售紀錄
+    </div>
+    <label class="lbl">目前庫存：<span id="currentStockLabel" style="color:#818cf8;font-weight:900"></span> 件</label>
+    <label class="lbl" style="margin-top:12px">修改為</label>
+    <input class="input" id="setStockQty" type="number" inputmode="numeric" min="0" placeholder="輸入新的庫存數量" style="margin-bottom:20px">
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-warning" style="flex:1" onclick="confirmSetStock()">確認修改</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal('setStockModal')">取消</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="productModal">
   <div class="sheet">
     <div class="sheet-title" id="productModalTitle">＋ 新增商品</div>
@@ -423,7 +438,8 @@ function renderInventory(){
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-success btn-sm" style="flex:1" onclick="openRestock(${p.id})">📥 補貨</button>
-      <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEditProduct(${p.id})">✏️ 編輯</button>
+      <button class="btn btn-warning btn-sm" style="flex:1" onclick="openSetStock(${p.id})">✏️ 改庫存</button>
+      <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEditProduct(${p.id})">⚙️ 編輯</button>
       <button class="btn btn-danger" onclick="askConfirm('確定刪除「${p.name.replace(/'/g,"\\'")}」？','deleteProd',${p.id})">🗑️</button>
     </div>
   </div>`;}).join('')}`;
@@ -628,7 +644,25 @@ function saveBuyer(){
 }
 
 // ===== ACTIONS =====
-let restockPid=null;
+let setStockPid=null;
+function openSetStock(id){
+  setStockPid=id;
+  const p=P().find(x=>x.id===id);
+  document.getElementById('setStockTitle').textContent='✏️ 調整庫存 — '+p.name;
+  document.getElementById('currentStockLabel').textContent=p.stock;
+  document.getElementById('setStockQty').value=p.stock;
+  openModal('setStockModal');
+}
+function confirmSetStock(){
+  const q=parseInt(document.getElementById('setStockQty').value);
+  if(isNaN(q)||q<0)return showToast('請輸入正確數量（0以上）','error');
+  const p=P().find(x=>x.id===setStockPid);
+  const old=p.stock;
+  p.stock=q;
+  closeModal('setStockModal');saveAll();
+  showToast(`庫存已從 ${old} 改為 ${q} 件`);
+  renderTab(currentTab);
+}
 function openRestock(id){
   restockPid=id;
   const p=P().find(x=>x.id===id);
